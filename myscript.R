@@ -6,8 +6,10 @@ library(MASS)
 
 ## Simulate data
  set.seed(1233)
-ap <- expand.grid(yr = 2005:2021) 
-ap$events <- rpois(length(ap$yr), 10*exp(log(ap$yr-2005)))
+ap <- expand.grid(yr = 2005:2025) 
+lp <- log(50) + 0.1* (ap$yr-2005)
+
+ap$events <- rpois(length(ap$yr), exp(lp))
 ap <- ap %>% 
   mutate(future = if_else(yr >2020, "Future", "Current"))
 ap_now <- ap  %>% 
@@ -26,8 +28,14 @@ res <- res %>%
   mutate_at(vars(lci, est, uci), exp)
 
 ## Plot data
-
+## Risk scale
 plot1 <- ggplot(ap, aes(x = yr, y = events, colour = future)) +
   geom_point() +
-  geom_ribbon(data = res, mapping = aes(x = yr, ymin = lci, ymax = uci), alpha = 0.2)
+  geom_ribbon(data = res, mapping = aes(x = yr, ymin = lci, ymax = uci, colour = NA), alpha = 0.2)
 plot1
+## Linear predictor (log) scale
+plot2 <- ggplot(ap, aes(x = yr, y = events, colour = future)) +
+  geom_point() +
+  geom_ribbon(data = res, mapping = aes(x = yr, ymin = lci, ymax = uci, colour = NA), alpha = 0.2) +
+  scale_y_log10()
+plot2
